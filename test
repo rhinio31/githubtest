@@ -1,6 +1,14 @@
-# Show AWS profile in prompt
-if [ -n "$AWS_DEFAULT_PROFILE" ]; then
-  export PS1="[\u@\h:\W (\$AWS_DEFAULT_PROFILE)]\$ "
-else
-  export PS1="[\u@\h:\W]\$ "
-fi
+# --- Custom Git Bash Prompt showing AWS profile ---
+
+# Define a function to build the prompt dynamically
+set_prompt() {
+  local aws_part=""
+  if [ -n "$AWS_DEFAULT_PROFILE" ]; then
+    aws_part="(${AWS_DEFAULT_PROFILE})"
+  fi
+
+  PS1="[\u@\h:\W ${aws_part}]\$ "
+}
+
+# Run it before every command
+PROMPT_COMMAND=set_prompt
