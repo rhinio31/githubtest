@@ -1,0 +1,6 @@
+# Show AWS profile in prompt
+if [ -n "$AWS_DEFAULT_PROFILE" ]; then
+  export PS1="[\u@\h:\W (\$AWS_DEFAULT_PROFILE)]\$ "
+else
+  export PS1="[\u@\h:\W]\$ "
+fi
