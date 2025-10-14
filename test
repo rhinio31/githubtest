@@ -1,21 +1,25 @@
-# --- Append AWS_DEFAULT_PROFILE to Git Bash default prompt ---
+# --- Append AWS_DEFAULT_PROFILE to Git Bash default prompt safely ---
 
-# Save the original PROMPT_COMMAND (Git Bash uses it internally)
+# Save the original PROMPT_COMMAND so we can call it
 __orig_prompt_command="$PROMPT_COMMAND"
 
-# Define a wrapper that adds AWS profile info to the end of PS1
-function __aws_extend_prompt() {
-  # Let Git Bash build its normal prompt first
+# Create a custom function to rebuild PS1 cleanly each time
+__aws_extend_prompt() {
+  # Let Git Bash set up its normal PS1 first
   if [ -n "$__orig_prompt_command" ]; then
     eval "$__orig_prompt_command"
   fi
 
-  # If AWS_DEFAULT_PROFILE is set, append it
+  # Keep the current PS1 (built by Git Bash)
+  local base_prompt="$PS1"
+
+  # If AWS_DEFAULT_PROFILE is set, insert it before the final $
   if [ -n "$AWS_DEFAULT_PROFILE" ]; then
-    # Add it in parentheses, just before the $
-    PS1="${PS1%%\\\$*} (${AWS_DEFAULT_PROFILE})\$ "
+    PS1="${base_prompt%%\\\$*} (${AWS_DEFAULT_PROFILE})\$ "
+  else
+    PS1="$base_prompt"
   fi
 }
 
-# Replace PROMPT_COMMAND with our wrapper
+# Replace PROMPT_COMMAND with our custom wrapper
 PROMPT_COMMAND="__aws_extend_prompt"
