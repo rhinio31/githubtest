@@ -1,23 +1,17 @@
-# --- Add AWS_DEFAULT_PROFILE to Git Bash prompt safely (keeps venv + colors) ---
+# --- Show AWS_DEFAULT_PROFILE in Git Bash prompt (safe version) ---
 
-# Function to add AWS profile text to current PS1, without overwriting anything
-__aws_add_to_prompt() {
-  # Work on a copy of the existing prompt
-  local ps1_current="$PS1"
-
-  # Only modify if AWS_DEFAULT_PROFILE is set
-  if [ -n "$AWS_DEFAULT_PROFILE" ]; then
-    # Remove any existing AWS info before re-adding it
-    ps1_current=$(echo "$ps1_current" | sed -E 's/ \(AWS:[^)]+\)//')
-
-    # Add AWS profile info just before the final $
-    ps1_current="${ps1_current%%\\\$*} (AWS:${AWS_DEFAULT_PROFILE})\$ "
-  fi
-
-  PS1="$ps1_current"
+# Function that echoes the AWS profile if defined
+__aws_ps1() {
+  [ -n "$AWS_DEFAULT_PROFILE" ] && printf " (AWS:%s)" "$AWS_DEFAULT_PROFILE"
 }
 
-# Wrap it around the existing PROMPT_COMMAND chain
-if [[ $PROMPT_COMMAND != *"__aws_add_to_prompt"* ]]; then
-  PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__aws_add_to_prompt"
+# Tell Git's helper to include our extra text in the default prompt
+# PS1 is rebuilt every time, so we only need to define PS1 once here.
+# The builtin __git_ps1 (loaded by /etc/profile.d/git-prompt.sh) is what
+# provides the branch info and colors.
+if type __git_ps1 >/dev/null 2>&1; then
+  PS1='`__git_ps1 "\[\033[1;32m\]\u@\h\[\033[0m\]:\[\033[1;34m\]\W\[\033[0m\]" "$(__aws_ps1) \$ "`'
+else
+  # Fallback if git prompt isn’t loaded yet
+  PS1='\u@\h:\W$(__aws_ps1)\$ '
 fi
